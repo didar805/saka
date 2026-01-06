@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System</title>
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  background:black;
+  color:white;
+  font-family:Arial, sans-serif;
+  overflow:hidden;
+}
+
+#black{
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:10;
+}
+
+#scanner{
+  display:none;
+  padding:15px;
+}
+
+#status{
+  margin-bottom:10px;
+  font-size:14px;
+  color:#aaa;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.grid img{
+  width:100%;
+  height:110px;
+  object-fit:cover;
+  border-radius:6px;
+  display:none;
+}
+
+#camera{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:20;
+}
+
+#camera::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(transparent 90%, rgba(255,255,255,0.05)),
+    linear-gradient(90deg, transparent 90%, rgba(255,255,255,0.05));
+  background-size:20px 20px;
+  animation:scan 2s linear infinite;
+}
+
+@keyframes scan{
+  from{background-position:0 0;}
+  to{background-position:20px 20px;}
+}
+
+#camText{
+  position:absolute;
+  bottom:20px;
+  width:100%;
+  text-align:center;
+  font-size:18px;
+  color:#0f0;
+}
+
+#final{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="black"></div>
+
+<div id="scanner">
+  <div id="status">📂 Galeri taranıyor...</div>
+  <div class="grid">
+    <img src="foto1.jpg">
+    <img src="foto2.jpg">
+    <img src="foto3.jpg">
+    <img src="foto1.jpg">
+    <img src="foto2.jpg">
+    <img src="foto3.jpg">
+  </div>
+</div>
+
+<div id="camera">
+  <div id="camText">📸 Ön kamera açıldı</div>
+</div>
+
+<div id="final">😂 ŞAKA! Yakalandın</div>
+
+<script>
+const MIN = 5 * 60 * 1000;   // 5 dakika
+const MAX = 10 * 60 * 1000;  // 10 dakika
+const waitTime = Math.random() * (MAX - MIN) + MIN;
+
+const photos = document.querySelectorAll(".grid img");
+let index = 0;
+
+setTimeout(() => {
+  document.getElementById("black").style.display="none";
+  document.getElementById("scanner").style.display="block";
+
+  const loader = setInterval(() => {
+    if(index < photos.length){
+      photos[index].style.display="block";
+      if(index === photos.length - 1){
+        document.getElementById("status").innerText =
+          "📸 Son çekilen fotoğraf bulundu";
+      }
+      index++;
+    } else {
+      clearInterval(loader);
+
+      setTimeout(()=>{
+        document.getElementById("scanner").style.display="none";
+        document.getElementById("camera").style.display="block";
+
+        setTimeout(()=>{
+          document.getElementById("camera").style.display="none";
+          document.getElementById("final").style.display="flex";
+        }, 5000);
+
+      }, 2000);
+    }
+  }, 700);
+
+}, waitTime);
+</script>
+
+</body>
+</html>
