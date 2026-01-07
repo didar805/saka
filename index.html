@@ -2,163 +2,128 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<title>Sistem Kontrolü</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>System</title>
 
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  background:black;
-  color:white;
-  font-family:Arial, sans-serif;
-  overflow:hidden;
-}
+  body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    overflow: hidden;
+  }
 
-#black{
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:10;
-}
+  .text {
+    font-size: 22px;
+    margin-top: 16px;
+    animation: flicker 1.6s infinite;
+  }
 
-#scanner{
-  display:none;
-  padding:15px;
-}
+  .red { color: #ff3b3b; }
+  .yellow { color: #ffd24d; }
 
-#status{
-  margin-bottom:10px;
-  font-size:14px;
-  color:#aaa;
-}
+  img {
+    width: 220px;
+    margin-top: 14px;
+    border: 2px solid #333;
+  }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-}
+  .glitch {
+    animation: glitch 0.15s infinite;
+  }
 
-.grid img{
-  width:100%;
-  height:110px;
-  object-fit:cover;
-  border-radius:6px;
-  display:none;
-}
+  @keyframes flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
 
-#camera{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:20;
-}
-
-#camera::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(transparent 90%, rgba(255,255,255,0.05)),
-    linear-gradient(90deg, transparent 90%, rgba(255,255,255,0.05));
-  background-size:20px 20px;
-  animation:scan 2s linear infinite;
-}
-
-@keyframes scan{
-  from{background-position:0 0;}
-  to{background-position:20px 20px;}
-}
-
-#camText{
-  position:absolute;
-  bottom:20px;
-  width:100%;
-  text-align:center;
-  font-size:18px;
-  color:#0f0;
-}
-
-#final{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:black;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:32px;
-}
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-1px, 1px); }
+    40% { transform: translate(1px, -1px); }
+    60% { transform: translate(-1px, -1px); }
+    80% { transform: translate(1px, 1px); }
+    100% { transform: translate(0); }
+  }
 </style>
 </head>
 
 <body>
 
-<div id="black"></div>
-
-<div id="scanner">
-  <div id="status">📂 Galeri taranıyor...</div>
-  <div class="grid">
-    <img src="foto1.jpg">
-    <img src="foto2.jpg">
-    <img src="foto3.jpg">
-    <img src="foto1.jpg">
-    <img src="foto2.jpg">
-    <img src="foto3.jpg">
-  </div>
-</div>
-
-<div id="camera">
-  <div id="camText">📸 Ön kamera açıldı</div>
-</div>
-
-<div id="final">😂 ŞAKA! Yakalandın</div>
+<audio id="cameraSound">
+  <source src="https://actions.google.com/sounds/v1/camera/camera_shutter_click_01.mp3">
+</audio>
 
 <script>
-const MIN = 5 * 60 * 1000;   // 5 dakika
-const MAX = 10 * 60 * 1000;  // 10 dakika
-const waitTime = Math.random() * (MAX - MIN) + MIN;
+  /* =========================
+     AYARLAR
+  ========================== */
+  const BLACK_SCREEN_MS = 10000; // ilk siyah ekran (10 sn)
+  const PHOTO_DELAY_START = 11000; // fotoğraflar ne zaman başlasın
+  const END_AT = 22000; // şaka bitiş süresi
 
-const photos = document.querySelectorAll(".grid img");
-let index = 0;
+  /* =========================
+     YARDIMCI FONKSİYONLAR
+  ========================== */
+  function addText(text, delay, cls="") {
+    setTimeout(() => {
+      const div = document.createElement("div");
+      div.className = "text " + cls;
+      div.innerText = text;
+      document.body.appendChild(div);
+    }, delay);
+  }
 
-setTimeout(() => {
-  document.getElementById("black").style.display="none";
-  document.getElementById("scanner").style.display="block";
+  function playCamera() {
+    const a = document.getElementById("cameraSound");
+    a.currentTime = 0;
+    a.play();
+  }
 
-  const loader = setInterval(() => {
-    if(index < photos.length){
-      photos[index].style.display="block";
-      if(index === photos.length - 1){
-        document.getElementById("status").innerText =
-          "📸 Son çekilen fotoğraf bulundu";
-      }
-      index++;
-    } else {
-      clearInterval(loader);
+  /* =========================
+     BAŞLAT
+  ========================== */
+  setTimeout(startPrank, BLACK_SCREEN_MS);
 
-      setTimeout(()=>{
-        document.getElementById("scanner").style.display="none";
-        document.getElementById("camera").style.display="block";
+  function startPrank() {
+    document.body.innerHTML = "";
+    document.body.style.background = "black";
 
-        setTimeout(()=>{
-          document.getElementById("camera").style.display="none";
-          document.getElementById("final").style.display="flex";
-        }, 5000);
+    // Metinler (zamanlı, sahte sistem hissi)
+    addText("⚠️ Sistem kontrolü başlatıldı", 500, "red glitch");
+    addText("Depolama birimleri taranıyor...", 2500);
+    addText("Son çekilen fotoğraflar algılandı", 4500, "red");
+    setTimeout(playCamera, 5200);
+    addText("📸 Ön kamera senkronize ediliyor", 6500);
+    addText("Medya dosyaları hazırlanıyor...", 8500);
+    addText("🔋 Pil seviyesi: %1", 10500, "yellow");
 
-      }, 2000);
-    }
-  }, 700);
+    // Fotoğraflar tek tek yüklensin
+    setTimeout(() => {
+      const photos = ["foto1.jpg", "foto2.jpg", "foto3.jpg"];
+      photos.forEach((src, i) => {
+        setTimeout(() => {
+          const img = document.createElement("img");
+          img.src = src;
+          document.body.appendChild(img);
+        }, i * 1500);
+      });
+    }, PHOTO_DELAY_START);
 
-}, waitTime);
+    // Şaka bitti
+    setTimeout(() => {
+      document.body.innerHTML = "";
+      const end = document.createElement("div");
+      end.className = "text";
+      end.style.fontSize = "26px";
+      end.innerText = "😄 ŞAKA! Rahat ol.";
+      document.body.appendChild(end);
+    }, END_AT);
+  }
 </script>
 
 </body>
 </html>
-
-delete old file
-
-
